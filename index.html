@@ -281,13 +281,18 @@ function draw(){
   }
 }
 
-function update(time=0){
-  const delta=time-lastTime; lastTime=time;
+function update(){
+  const now = performance.now();
+  const delta = now - lastTime;
+  lastTime = now;
   if(!paused&&!gameOver&&!clearing){
-    dropCounter+=delta;
-    if(dropCounter>dropInterval) tickDown();
+    dropCounter += delta;
+    while(dropCounter > dropInterval){
+      tickDown();
+      dropCounter -= dropInterval;
+    }
   }
-  draw(); requestAnimationFrame(update);
+  draw();
 }
 
 function move(dx){ if(paused||gameOver||clearing) return; piece.x+=dx; if(collide(board,piece)) piece.x-=dx; }
@@ -359,7 +364,10 @@ soundBtn.addEventListener('click',()=>{
 // 필요 시 수동 일시정지(P) 사용
 
 best = Number(localStorage.getItem('tetris_best')||0);
-updateUI(); resetGame(); requestAnimationFrame(update);
+updateUI();
+resetGame();
+lastTime = performance.now();
+setInterval(update, 16);
 </script>
 </body>
 </html>
