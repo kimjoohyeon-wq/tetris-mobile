@@ -89,6 +89,8 @@ const SHAPES=[
 let board,piece,nextType,holdType,canHold,dropCounter,dropInterval,lastTime,score,lines,level,paused,gameOver,best;
 let clearFlashRows=[]; let clearing=false;
 let soundOn=(localStorage.getItem('tetris_sound') ?? '1') === '1'; let audioCtx=null;
+let lastPieceY = -999;
+let lastFallTs = 0;
 
 function initAudio(){ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)(); }
 function beep(freq=440,dur=0.05,type='square',vol=0.03){
@@ -282,16 +284,29 @@ function draw(){
 }
 
 function update(){
-  const now = performance.now();
+  const now = Date.now();
   const delta = now - lastTime;
   lastTime = now;
-  if(!paused&&!gameOver&&!clearing){
+
+  if(!paused && !gameOver && !clearing){
     dropCounter += delta;
-    while(dropCounter > dropInterval){
+    if(dropCounter >= dropInterval){
       tickDown();
-      dropCounter -= dropInterval;
+      dropCounter = 0;
+    }
+
+    // watchdog: 2.5초 이상 블록 y가 안 변하면 강제 1칸 하강
+    if(piece){
+      if(piece.y !== lastPieceY){
+        lastPieceY = piece.y;
+        lastFallTs = now;
+      } else if(now - lastFallTs > 2500){
+        tickDown();
+        lastFallTs = now;
+      }
     }
   }
+
   draw();
 }
 
@@ -366,8 +381,9 @@ soundBtn.addEventListener('click',()=>{
 best = Number(localStorage.getItem('tetris_best')||0);
 updateUI();
 resetGame();
-lastTime = performance.now();
-setInterval(update, 16);
+paused = false;
+lastTime = Date.now();
+setInterval(update, 50);
 </script>
 </body>
 </html>
