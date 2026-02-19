@@ -355,9 +355,8 @@ soundBtn.addEventListener('click',()=>{
   updateUI();
 });
 
-document.addEventListener('visibilitychange', ()=>{
-  if (document.hidden && !gameOver) paused = true;
-});
+// 모바일 브라우저에서 visibility 이벤트가 과하게 발생해 게임이 멈추는 이슈 방지
+// 필요 시 수동 일시정지(P) 사용
 
 best = Number(localStorage.getItem('tetris_best')||0);
 updateUI(); resetGame(); requestAnimationFrame(update);
